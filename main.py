@@ -12,6 +12,10 @@ app = FastAPI()
 async def root():
     return {"message": "Hello World"}
 
+@app.get("/wake_up")
+async def wake_up():
+    return {"message": "Waking up"}, 200
+
 
 @app.get('/process')
 async def process():
