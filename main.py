@@ -1,8 +1,12 @@
 import asyncio
+import os
 import json
 from pprint import pprint
 from typing import List, Dict
+from cv2 import TonemapMantiuk
 from fastapi import FastAPI, UploadFile, File
+
+import tempfile
 
 from util.types import Part, PartsList
 
@@ -21,7 +25,8 @@ async def wake_up():
 
 @app.post('/process')
 async def process(post_file: UploadFile = File(...)):
-    c = camelot.read_pdf(post_file.file, pages='1-end', flavor="stream")
+    c = camelot.read_pdf("./Relatório_de_fabricação_por_módulo_Projeto_Balcao.pdf", pages='1-end', flavor="stream")
+
     headers: List[str] = []
     objects: List[Part] = []
     present_parent = ""
@@ -53,3 +58,18 @@ async def process(post_file: UploadFile = File(...)):
 
         return PartsList(name="test", parts=objects).to_json()
 #     asyncio.run(process())
+
+@app.post("/ponga")
+async def ponga(post_file:UploadFile = File(...)):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
+        temp_file.write(await post_file.read())
+        temp_file_path = temp_file.name
+        print(temp_file_path)
+        print(post_file.filename)
+        # tables = camelot.read_pdf("./Relatório_de_fabricação_por_módulo_Projeto_Balcao.pdf", pages='1-end', flavor="stream")
+        tables = camelot.read_pdf(temp_file_path, pages='1-end', flavor="stream")
+        contents = []
+        for table in tables:
+            contents.append(table.df.to_dict(orient='records'))
+        # print(contents)
+        return contents

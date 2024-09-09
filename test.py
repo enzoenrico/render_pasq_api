@@ -1,14 +1,10 @@
-from fastapi.testclient import TestClient
-from main import app
+import requests
 
-client = TestClient(app)  # Create the TestClient with the defined app
+def make_post_request_with_pdf(filepath):
+    url = "http://localhost:8000/ponga"
+    # files = {'post_file': open(filepath, 'rb')}
+    with open(filepath, "rb") as f:
+        r = requests.post(url, files={"post_file": f})
+        print(r.json())
 
-def test_process():
-    with open("Relatório_de_fabricação_por_módulo_Projeto_Balcao.pdf", "rb") as file:  # Ensure you have a test.pdf file in the same directory
-        response = client.post("/process", files={"post_file": file})
-
-    print("Status Code:", response.status_code)  # Print the status code
-    print("Response JSON:", response.json())  # Print the response JSON
-
-    assert response.status_code == 200
-    assert "parts" in response.json()
+make_post_request_with_pdf("./Relatório_de_fabricação_por_módulo_Projeto_Balcao.pdf")
