@@ -58,7 +58,7 @@ async def wake_up():
 
 #         return PartsList(name="test", parts=objects).to_json()
 
-@app.post("/ponga")
+@app.get("/ponga")
 async def ponga(post_file:UploadFile = File(...)):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
         temp_file.write(await post_file.read())
