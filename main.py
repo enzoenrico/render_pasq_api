@@ -58,18 +58,36 @@ async def wake_up():
 
 #         return PartsList(name="test", parts=objects).to_json()
 
-@app.get("/ponga")
+@app.post("/ponga")
 async def ponga(post_file:UploadFile = File(...)):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
         temp_file.write(await post_file.read())
         temp_file_path = temp_file.name
         print(temp_file_path)
         print(post_file.filename)
-        # tables = camelot.read_pdf("./Relatório_de_fabricação_por_módulo_Projeto_Balcao.pdf", pages='1-end', flavor="stream")
         tables = camelot.read_pdf(temp_file_path, pages='1-end', flavor="stream")
+
         contents = []
+
         for table in tables:
-            contents.append(table.df.to_dict(orient='records'))
+            # contents.append(table.df.to_dict(orient='records'))
+            parsed_table = table.df.to_dict(orient='records')
+
+            for obj in parsed_table:
+                if obj[0] != "" and all(obj[index] == "" for index in range(1, 5)):
+                    present_parent = obj[0]
+                if present_parent != "" and all(obj[index] != "" for index in range(len(obj))):
+                    # If the ref has a '.', it's valid
+                    if "." in obj[1].__str__():
+                        parsed_part = Part(
+                            parent=present_parent,
+                            code=obj[0],
+                            ref=obj[1],
+                            quantity=obj[4],
+                            size=obj[3]
+                        )
+                        contents.append(parsed_part)
+                        pprint(parsed_part.to_json())
         # print(contents)
         return contents
 
